@@ -56,6 +56,51 @@ contract EnhancedAccount is IAccount, Ownable {
         i_entryPoint = entryPoint;
     }
 
+    // ERC-7715: Permission types
+    enum PermissionType { SEND_FUNDS, SIGN_MESSAGE, EXECUTE_CALL }
+    mapping(address => mapping(PermissionType => bool)) public permissions;
+
+    event PermissionGranted(address indexed account, PermissionType permission);
+    event PermissionRevoked(address indexed account, PermissionType permission);
+
+
+    // --- ERC-7715 Tokenized Permissioning ---
+    modifier onlyWithPermission(PermissionType permission) {
+        require(permissions[msg.sender][permission], "No permission");
+        _;
+    }
+    function grantPermission(address account, PermissionType permission) external onlyOwner {
+        permissions[account][permission] = true;
+        emit PermissionGranted(account, permission);
+    }
+    function revokePermission(address account, PermissionType permission) external onlyOwner {
+        permissions[account][permission] = false;
+        emit PermissionRevoked(account, permission);
+    }
+
+    function executeWithPermission(
+        address dest,
+        uint256 value,
+        bytes calldata data
+    ) external onlyWithPermission(PermissionType.EXECUTE_CALL) {
+        (bool success, ) = dest.call{value: value}(data);
+        require(success, "Execution failed");
+    }
+
+    function sendFundsWithPermission(address payable to, uint256 amount)
+        external onlyWithPermission(PermissionType.SEND_FUNDS)
+    {
+        require(address(this).balance >= amount, "Insufficient balance");
+        to.transfer(amount);
+    }
+
+    function signMessageWithPermission(bytes32 hash, bytes memory signature)
+        external view onlyWithPermission(PermissionType.SIGN_MESSAGE)
+        returns (bool)
+    {
+        return ECDSA.recover(hash, signature) == owner();
+    }
+
     // --- EIP-7702: Batch Processing and Approvals ---
     /**
      * @notice Executes multiple operations in a single transaction using EIP-1153 transient storage.
