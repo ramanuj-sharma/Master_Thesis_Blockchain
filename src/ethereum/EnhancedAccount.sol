@@ -17,10 +17,38 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
  * - Multi-Factor Authentication (MFA)
  * - Spending limits
  * - Social recovery
+ * 
+ * This version utilizes EIP-1153 transient storage (TSTORE, TLOAD) for optimized storage operations.
  */
 contract EnhancedAccount is IAccount, Ownable {
     // Immutable EntryPoint address for ERC-4337 transactions
     IEntryPoint private immutable i_entryPoint;
+
+    // Mutable state variables for spending limits and guardians.
+    address public secondaryKey; // Secondary key for MFA
+    mapping(bytes32 => bool) public usedOtps; // Tracks used OTPs
+
+    uint256 public dailyLimit; // Max ETH allowed per day
+    uint256 public dailySpent; // Total ETH spent today
+    uint256 public lastSpendReset; // Timestamp of last daily reset
+    mapping(address => bool) public whitelist; // Addresses allowed to bypass limit
+    mapping(address => bool) public blacklist; // Addresses blocked from spending
+
+    address[] public guardians; // List of guardians for social recovery
+    uint256 public recoveryThreshold; // Number of approvals required for recovery
+    mapping(address => bool) public isGuardian; // Guardian status
+
+    event BatchApproved(address indexed operator, bytes data);
+    event BatchOperationResult(uint256 index, address dest, bool success);
+    event SecondaryKeySet(address indexed newKey);
+    event OTPUsed(bytes32 indexed otp);
+    event DailyLimitSet(uint256 newLimit);
+    event TransactionExecuted(address indexed dest, uint256 value, bool success);
+    event AddressWhitelisted(address indexed addr);
+    event AddressBlacklisted(address indexed addr);
+    event GuardianAdded(address indexed guardian);
+    event GuardianRemoved(address indexed guardian);
+    event RecoveryTriggered(address indexed newOwner);
 
     // Constructor to initialize the contract with an initial owner and entry point
     constructor(address initialOwner, IEntryPoint entryPoint) Ownable(initialOwner) {
@@ -29,12 +57,8 @@ contract EnhancedAccount is IAccount, Ownable {
     }
 
     // --- EIP-7702: Batch Processing and Approvals ---
-    event BatchApproved(address indexed operator, bytes data);
-    event BatchOperationResult(uint256 index, address dest, bool success);
-
     /**
-     * @notice Executes multiple operations in a single transaction.
-     * @dev Uses local variables to simulate transient storage.
+     * @notice Executes multiple operations in a single transaction using EIP-1153 transient storage.
      * @param dests List of destination addresses.
      * @param values List of ETH amounts to send.
      * @param data List of calldata for each destination.
@@ -49,12 +73,24 @@ contract EnhancedAccount is IAccount, Ownable {
             "EnhancedAccount: Length mismatch"
         );
 
-        // Using local variable instead of storage to simulate transient storage
+        // Calculate total value to send
         uint256 totalValue = 0; 
         for (uint256 i = 0; i < values.length; i++) {
             totalValue += values[i];
         }
-        require(address(this).balance >= totalValue, "EnhancedAccount: Insufficient balance");
+        
+        // Store totalValue in transient storage using TSTORE (EIP-1153 opcode)
+        assembly {
+            tstore(0, totalValue) // Store total value in transient storage
+        }
+
+        // Retrieve totalValue from transient storage using TLOAD (EIP-1153 opcode)
+        uint256 storedTotalValue;
+        assembly {
+            storedTotalValue := tload(0) // Retrieve total value from transient storage
+        }
+
+        require(address(this).balance >= storedTotalValue, "EnhancedAccount: Insufficient balance");
 
         for (uint256 i = 0; i < dests.length; i++) {
             (bool success, ) = dests[i].call{value: values[i]}(data[i]);
@@ -65,7 +101,7 @@ contract EnhancedAccount is IAccount, Ownable {
         emit BatchApproved(msg.sender, abi.encode(dests, values, data));
     }
 
-    // Original batch function for comparison
+    // Original batch function for comparison (currently unchanged)
     function executeBatch(
         address[] calldata dests,
         uint256[] calldata values,
@@ -74,7 +110,7 @@ contract EnhancedAccount is IAccount, Ownable {
         // Identical to `executeBatchWithTransient`
         // Keeping this for performance comparison
     }
-
+    
     /**
      * @notice Allows the account owner to approve ERC-20 tokens for gasless transactions.
      * @param token The ERC-20 token contract.
@@ -86,12 +122,6 @@ contract EnhancedAccount is IAccount, Ownable {
     }
 
     // --- Multi-Factor Authentication (MFA) ---
-    address public secondaryKey; // Secondary key for MFA
-    mapping(bytes32 => bool) public usedOtps; // Tracks used OTPs
-
-    event SecondaryKeySet(address indexed newKey);
-    event OTPUsed(bytes32 indexed otp);
-
     /**
      * @notice Sets a secondary key for MFA.
      * @param newKey The new secondary key.
@@ -134,17 +164,6 @@ contract EnhancedAccount is IAccount, Ownable {
     }
 
     // --- Spending Limits ---
-    uint256 public dailyLimit; // Max ETH allowed per day
-    uint256 public dailySpent; // Total ETH spent today
-    uint256 public lastSpendReset; // Timestamp of last daily reset
-    mapping(address => bool) public whitelist; // Addresses allowed to bypass limit (if needed)
-    mapping(address => bool) public blacklist; // Addresses blocked from spending
-
-    event DailyLimitSet(uint256 newLimit);
-    event TransactionExecuted(address indexed dest, uint256 value, bool success);
-    event AddressWhitelisted(address indexed addr);
-    event AddressBlacklisted(address indexed addr);
-
     /**
      * @notice Sets a daily spending limit.
      * @param limit The new daily limit in wei.
@@ -173,21 +192,25 @@ contract EnhancedAccount is IAccount, Ownable {
     }
 
     /**
-     * @notice Executes a transaction with spending limits enforced.
-     * Uses local variables to simulate transient storage for daily checks.
+     * @notice Executes a transaction with spending limits enforced using EIP-1153 transient storage.
      * @param dest The destination address.
      * @param value The ETH amount to send.
      * @param data The calldata for the transaction.
      */
     function executeWithLimitTransient(address dest, uint256 value, bytes calldata data) external onlyOwner {
-        // Simulate resetting daily spent with local variables
-        uint256 tempDailySpent = dailySpent; 
-        uint256 tempLastSpendReset = lastSpendReset;
+        // Load daily spent and last spend reset timestamps from transient storage
+        uint256 tempDailySpent;
+        uint256 tempLastSpendReset;
+
+        assembly {
+            tempDailySpent := tload(1) // Load transient value for daily spent
+            tempLastSpendReset := tload(2) // Load transient value for last spend reset
+        }
 
         // Reset daily spending if it's a new day
         if (block.timestamp > tempLastSpendReset + 1 days) {
             tempDailySpent = 0;
-            tempLastSpendReset = block.timestamp;
+            tempLastSpendReset = block.timestamp ;
         }
 
         require(!blacklist[dest], "EnhancedAccount: Address is blacklisted");
@@ -195,7 +218,7 @@ contract EnhancedAccount is IAccount, Ownable {
             require(tempDailySpent + value <= dailyLimit, "EnhancedAccount: Exceeds daily limit");
         }
 
-        // Update the simulated transient storage
+        // Update the transient daily spent value
         tempDailySpent += value;
 
         // Execute the transaction
@@ -203,20 +226,18 @@ contract EnhancedAccount is IAccount, Ownable {
         emit TransactionExecuted(dest, value, success);
         require(success, "EnhancedAccount: Spending limit transaction failed");
 
+        // Save updated values back to transient storage
+        assembly {
+            tstore(1, tempDailySpent) // Store updated daily spent
+            tstore(2, tempLastSpendReset) // Update last spend reset timestamp
+        }
+
         // Finally, update persistent storage
         dailySpent = tempDailySpent;
         lastSpendReset = tempLastSpendReset;
     }
 
     // --- Social Recovery ---
-    address[] public guardians; // List of guardians
-    uint256 public recoveryThreshold; // Number of approvals required for recovery
-    mapping(address => bool) public isGuardian; // Guardian status
-
-    event GuardianAdded(address indexed guardian);
-    event GuardianRemoved(address indexed guardian);
-    event RecoveryTriggered(address indexed newOwner);
-
     /**
      * @notice Adds a guardian for social recovery.
      * @param guardian The guardian's address.
@@ -304,4 +325,7 @@ contract EnhancedAccount is IAccount, Ownable {
     function getEntryPoint() external view returns (address) {
         return address(i_entryPoint);
     }
+
+    // Fallback function to receive ETH
+    receive() external payable {}
 }
