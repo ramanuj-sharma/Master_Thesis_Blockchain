@@ -57,24 +57,39 @@ contract EnhancedAccount is IAccount, Ownable {
     }
 
     // ERC-7715: Permission types
-    enum PermissionType { SEND_FUNDS, SIGN_MESSAGE, EXECUTE_CALL }
-    mapping(address => mapping(PermissionType => bool)) public permissions;
 
-    event PermissionGranted(address indexed account, PermissionType permission);
+    // Add a new struct to store permission with expiration time
+    struct Permission {
+        bool granted;
+        uint256 expiresAt; // Timestamp when permission expires
+    }
+
+    enum PermissionType { SEND_FUNDS, SIGN_MESSAGE, EXECUTE_CALL }
+    mapping(address => mapping(PermissionType => Permission)) public permissions;
+
+    event PermissionGranted(address indexed account, PermissionType permission, uint256 expiresAt);
     event PermissionRevoked(address indexed account, PermissionType permission);
 
 
     // --- ERC-7715 Tokenized Permissioning ---
+    // Modifier update to check expiration before allowing actions
     modifier onlyWithPermission(PermissionType permission) {
-        require(permissions[msg.sender][permission], "No permission");
+        require(
+            permissions[msg.sender][permission].granted &&
+            permissions[msg.sender][permission].expiresAt > block.timestamp,
+            "No valid permission"
+        );
         _;
     }
-    function grantPermission(address account, PermissionType permission) external onlyOwner {
-        permissions[account][permission] = true;
-        emit PermissionGranted(account, permission);
+    // Updated function to grant permission with an optional expiration time
+    function grantPermission(address account, PermissionType permission, uint256 duration) external onlyOwner {
+        uint256 expiryTime = duration > 0 ? block.timestamp + duration : type(uint256).max;
+        permissions[account][permission] = Permission(true, expiryTime);
+        emit PermissionGranted(account, permission, expiryTime);
     }
+    // Updated function to revoke permission
     function revokePermission(address account, PermissionType permission) external onlyOwner {
-        permissions[account][permission] = false;
+        delete permissions[account][permission];
         emit PermissionRevoked(account, permission);
     }
 
