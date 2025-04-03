@@ -1,18 +1,27 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Note the updated import
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import EnhancedAccountUI from './EnhancedAccountUI';
-import OTPSetup from './components/OTPSetup'; // Ensure this path is correct
+import OTPSetup from './components/OTPSetup';
+import Settings from './components/Settings';
+import { ThemeProvider } from 'styled-components';
+import { lightTheme, darkTheme, GlobalStyles } from "./styles/themes";
 
 function App() {
+  const [theme, setTheme] = useState('light');
+
   return (
-    <Router>
-      <div className="App">
-        <Routes> {/* Changed from Switch to Routes */}
-          <Route path="/otp-setup" element={<OTPSetup />} /> {/* Updated syntax */}
-          <Route path="/" element={<EnhancedAccountUI />} /> {/* Updated syntax */}
-        </Routes>
-      </div>
-    </Router>
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <GlobalStyles />
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/otp-setup" element={<OTPSetup />} />
+            <Route path="/settings" element={<Settings setTheme={setTheme} />} />
+            <Route path="/" element={<EnhancedAccountUI />} />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 
