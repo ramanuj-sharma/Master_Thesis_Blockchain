@@ -8,6 +8,7 @@ export default function FeaturesPage() {
   const [contract, setContract] = useState(null);
   const [formData, setFormData] = useState({});
   const [network, setNetwork] = useState(null);
+  const [activeTab, setActiveTab] = useState("all"); // For filtering features
   const navigate = useNavigate();
 
   const contractAddress = "0x20a7cFfdE509256e63FC51E40e5dB29401D74DA2";
@@ -63,6 +64,9 @@ export default function FeaturesPage() {
       const secondarySignature = await signer.signMessage(ethers.utils.arrayify(ethSignedMessage));
 
       setFormData((prev) => ({ ...prev, secondarySignature }));
+      
+      // Success notification
+      showToast("OTP generated and signed successfully!");
     } catch (error) {
       console.error("Error in OTP generation or signing:", error.message || error);
       alert(`OTP generation or signing failed. Reason: ${error.message || error}`);
@@ -75,37 +79,125 @@ export default function FeaturesPage() {
       
       const tx = await contract[methodName](...methodArgs);
       console.log("Transaction sent:", tx.hash);
+      
+      // Show pending message
+      showToast(`Transaction pending: ${tx.hash.substring(0, 10)}...`, "pending");
+      
       await tx.wait();
       
       const endTime = Date.now();
       const duration = ((endTime - startTime) / 1000).toFixed(2);
 
-      alert(`Transaction successful! Time taken: ${duration} seconds`);
+      // Success notification
+      showToast(`Transaction successful! Time taken: ${duration} seconds`);
     } catch (error) {
       console.error(`${methodName} failed:`, error);
       alert(`${methodName} failed! Ensure all inputs are correct.`);
     }
   }
+  
+  // Toast notification function
+  function showToast(message, type = "success") {
+    // Implement a simple toast notification
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    
+    // Fade in
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+  }
+
+  // Helper function to truncate address
+  function truncateAddress(address) {
+    if (!address) return "";
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  }
+
+  function formatFeatureIcon(featureName) {
+    // Simple icon representation using unicode symbols
+    const icons = {
+      "Set Secondary Key": "🔑",
+      "Multi-Factor Authentication": "🔐",
+      "Batch Execution (Transient)": "⚡",
+      "Batch Execution": "📦",
+      "Spending Limit (Transient)": "💰",
+      "Whitelist & Blacklist": "📝",
+      "Social Recovery": "🔄"
+    };
+    
+    return icons[featureName] || "🛠️";
+  }
+
+  // Handle disconnect
+  function disconnect() {
+    sessionStorage.removeItem("userAddress");
+    sessionStorage.removeItem("network");
+    navigate("/");
+  }
 
   return (
     <div className="features-container">
       <header className="features-header">
-        <h1>Enhanced Account Features</h1>
+        <h1>
+          <span className="feature-icon">💼</span> 
+          Enhanced Account Features
+        </h1>
         <div className="wallet-info">
-          <span>Connected: {account} ({network || "Unknown Network"})</span>
-          <button onClick={() => navigate("/")} className="disconnect-button">
+          <span>
+            <strong>Address:</strong> {truncateAddress(account)}
+          </span>
+          <span>
+            <strong>Network:</strong> {network || "Unknown"}
+          </span>
+          <button onClick={disconnect} className="disconnect-button">
             Disconnect
           </button>
         </div>
       </header>
 
+      <div className="features-tabs">
+        <button 
+          className={activeTab === "all" ? "active" : ""} 
+          onClick={() => setActiveTab("all")}
+        >
+          All Features
+        </button>
+        <button 
+          className={activeTab === "security" ? "active" : ""} 
+          onClick={() => setActiveTab("security")}
+        >
+          Security
+        </button>
+        <button 
+          className={activeTab === "transactions" ? "active" : ""} 
+          onClick={() => setActiveTab("transactions")}
+        >
+          Transactions
+        </button>
+      </div>
+
       <div className="features-grid">
         <div className="feature-card">
-          <h2>Set Secondary Key</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Set Secondary Key")}</span>
+            Set Secondary Key
+          </h2>
+          <div className="feature-description">
+            Add an extra security key for multi-factor authentication
+          </div>
           <input
             type="text"
             name="newSecondaryKey"
-            placeholder="New secondary key"
+            placeholder="New secondary key address"
             onChange={handleChange}
           />
           <button onClick={() => executeWithTimer('setSecondaryKey', [formData.newSecondaryKey])}>
@@ -114,17 +206,24 @@ export default function FeaturesPage() {
         </div>
 
         <div className="feature-card">
-          <h2>Multi-Factor Authentication</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Multi-Factor Authentication")}</span>
+            Multi-Factor Authentication
+          </h2>
+          <div className="feature-description">
+            Execute transactions with additional security verification
+          </div>
           <input type="text" name="dest" placeholder="Destination address" onChange={handleChange} />
           <input type="text" name="value" placeholder="ETH value" onChange={handleChange} />
-          <input type="text" name="data" placeholder="Calldata" onChange={handleChange} />
-          <input type="text" name="otp" placeholder="OTP" value={formData.otp || ''} readOnly />
+          <input type="text" name="data" placeholder="Calldata (optional)" onChange={handleChange} />
+          <input type="text" name="otp" placeholder="OTP" value={formData.otp || ''} readOnly className="generated-field" />
           <input
             type="text"
             name="secondarySignature"
             placeholder="Secondary Key Signature"
             value={formData.secondarySignature || ''}
             readOnly
+            className="generated-field"
           />
           <div className="button-row">
             <button onClick={generateOtpAndSign}>Generate OTP & Sign</button>
@@ -135,7 +234,13 @@ export default function FeaturesPage() {
         </div>
 
         <div className="feature-card">
-          <h2>Batch Execution (Transient)</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Batch Execution (Transient)")}</span>
+            Batch Execution (Transient)
+          </h2>
+          <div className="feature-description">
+            Execute multiple transactions in a single operation with transient security
+          </div>
           <input type="text" name="dests" placeholder="Destination addresses (comma-separated)" onChange={handleChange} />
           <input type="text" name="values" placeholder="ETH values (comma-separated)" onChange={handleChange} />
           <input type="text" name="batchData" placeholder="Calldata (comma-separated)" onChange={handleChange} />
@@ -149,7 +254,13 @@ export default function FeaturesPage() {
         </div>
 
         <div className="feature-card">
-          <h2>Batch Execution</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Batch Execution")}</span>
+            Batch Execution
+          </h2>
+          <div className="feature-description">
+            Execute multiple transactions in a single operation
+          </div>
           <input type="text" name="dests" placeholder="Destination addresses (comma-separated)" onChange={handleChange} />
           <input type="text" name="values" placeholder="ETH values (comma-separated)" onChange={handleChange} />
           <input type="text" name="batchData" placeholder="Calldata (comma-separated)" onChange={handleChange} />
@@ -163,21 +274,33 @@ export default function FeaturesPage() {
         </div>
 
         <div className="feature-card">
-          <h2>Spending Limit (Transient)</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Spending Limit (Transient)")}</span>
+            Spending Limit (Transient)
+          </h2>
+          <div className="feature-description">
+            Set daily transaction limits with transient security
+          </div>
           <input type="text" name="limit" placeholder="Daily limit (ETH)" onChange={handleChange} />
           <button onClick={() => executeWithTimer('setDailyLimit', [ethers.utils.parseEther(formData.limit || "0")])}>
             Set Daily Limit
           </button>
           <input type="text" name="dest" placeholder="Destination address" onChange={handleChange} />
           <input type="text" name="value" placeholder="ETH value" onChange={handleChange} />
-          <input type="text" name="data" placeholder="Calldata" onChange={handleChange} />
+          <input type="text" name="data" placeholder="Calldata (optional)" onChange={handleChange} />
           <button onClick={() => executeWithTimer('executeWithLimitTransient', [formData.dest, ethers.utils.parseEther(formData.value || "0"), formData.data || "0x"])}>
             Execute with Transient Limit
           </button>
         </div>
 
         <div className="feature-card">
-          <h2>Whitelist & Blacklist</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Whitelist & Blacklist")}</span>
+            Whitelist & Blacklist
+          </h2>
+          <div className="feature-description">
+            Manage allowed and blocked addresses for transactions
+          </div>
           <input type="text" name="whitelistAddress" placeholder="Address to whitelist" onChange={handleChange} />
           <button onClick={() => executeWithTimer('addToWhitelist', [formData.whitelistAddress])}>
             Add to Whitelist
@@ -189,7 +312,13 @@ export default function FeaturesPage() {
         </div>
 
         <div className="feature-card">
-          <h2>Social Recovery</h2>
+          <h2>
+            <span className="feature-icon">{formatFeatureIcon("Social Recovery")}</span>
+            Social Recovery
+          </h2>
+          <div className="feature-description">
+            Recover your account with help from designated guardians
+          </div>
           <input type="text" name="newOwner" placeholder="New owner address" onChange={handleChange} />
           <input type="text" name="guardianSignatures" placeholder="Guardian signatures (comma-separated)" onChange={handleChange} />
           <button onClick={() => executeWithTimer('triggerRecovery', [formData.newOwner, formData.guardianSignatures ? formData.guardianSignatures.split(",") : []])}>
