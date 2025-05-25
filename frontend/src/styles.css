@@ -134,6 +134,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     border-top: 5px solid #3498db;
+    box-sizing: border-box;
   }
   
   /* Color coding for different feature cards */
@@ -192,10 +193,23 @@ body {
   }
   
   .feature-card input {
-    background-color: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    transition: border-color 0.2s;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 0.7rem;
+    background-color: #f8f9fa;
+    transition: border-color 0.2s;
+  }
+  
+  .feature-card input::placeholder {
+    color: #bbb;
+    opacity: 1;
+    text-overflow: ellipsis;
+    font-size: 1rem;
   }
   
   .feature-card input:focus {
@@ -362,6 +376,7 @@ body {
     background-color: #f0f0f0;
     color: #555;
     font-family: monospace;
+    font-size: 1rem;
   }
 
   /* Toast notifications */
@@ -414,4 +429,9 @@ body {
       margin-bottom: 0.5rem;
       font-size: 1.8rem;
     }
+  }
+
+  .feature-card input:last-child,
+  .feature-card button:last-child {
+    margin-bottom: 0;
   }
