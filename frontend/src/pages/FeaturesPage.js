@@ -183,6 +183,33 @@ export default function FeaturesPage() {
         </div>
       </header>
 
+      <div className="wallet-description">
+        <h2>Enhanced Smart Contract Wallet</h2>
+        <p>
+          Welcome to your enhanced smart contract wallet, built with advanced security and convenience in mind. 
+          This wallet combines the power of ERC-4337 account abstraction with cutting-edge features like Multi-Factor Authentication, 
+          batch transactions, and optimized gas usage through transient storage.
+        </p>
+        <div className="wallet-description-grid">
+          <div className="wallet-highlight">
+            <h3>🛡️ Advanced Security</h3>
+            <p>Protected by Multi-Factor Authentication, daily spending limits, and social recovery guardians. Your funds stay safe with multiple layers of security.</p>
+          </div>
+          <div className="wallet-highlight">
+            <h3>💰 Gas Optimization</h3>
+            <p>Save on transaction costs with batch processing and EIP-1153 transient storage implementation for optimal gas efficiency.</p>
+          </div>
+          <div className="wallet-highlight">
+            <h3>🔄 Smart Recovery</h3>
+            <p>Never lose access to your funds with our guardian-based social recovery system. Trusted contacts can help restore your access.</p>
+          </div>
+          <div className="wallet-highlight">
+            <h3>⚡ Enhanced Performance</h3>
+            <p>Execute multiple transactions in a single batch, manage permissions efficiently, and enjoy seamless integration with dApps.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="features-tabs">
         <button 
           className={activeTab === "all" ? "active" : ""} 
@@ -206,6 +233,30 @@ export default function FeaturesPage() {
 
       <div className="features-grid">
         {[
+          {
+            id: "secondaryKey",
+            title: "Set Secondary Key",
+            icon: "🔑",
+            description: "Configure your secondary key for MFA transactions",
+            helpText: `Set up a secondary key for Multi-Factor Authentication (MFA) transactions.
+
+How to use:
+1. Enter the address of your secondary key
+2. Click "Set Secondary Key" to configure it
+
+Note: The secondary key will be used to sign one-time passwords (OTPs) for MFA transactions.
+Keep your secondary key's private key secure and separate from your main wallet key.`,
+            category: "security",
+            fields: [
+              { name: "secondaryKeyAddress", placeholder: "Secondary key address" }
+            ],
+            buttons: [
+              {
+                text: "Set Secondary Key",
+                onClick: () => executeWithTimer('setSecondaryKey', [formData.secondaryKeyAddress])
+              }
+            ]
+          },
           {
             id: "batchMfa",
             title: "Batch MFA Transactions",
@@ -322,9 +373,9 @@ Data: 0x,0x`,
               {
                 text: "Execute Batch",
                 onClick: () => executeWithTimer('executeBatch', [
-                  formData.dests ? formData.dests.split(",") : [],
-                  formData.values ? formData.values.split(",").map((v) => ethers.utils.parseEther(v)) : [],
-                  formData.batchData ? formData.batchData.split(",") : []
+            formData.dests ? formData.dests.split(",") : [],
+            formData.values ? formData.values.split(",").map((v) => ethers.utils.parseEther(v)) : [],
+            formData.batchData ? formData.batchData.split(",") : []
                 ])
               }
             ]
@@ -428,12 +479,14 @@ Note: You need signatures from the minimum required number of guardians to compl
                 <span className="feature-icon">{feature.icon}</span>
                 <div className="feature-title-group">
                   <h2>{feature.title}</h2>
-                  <p className="feature-description">{feature.description}</p>
                 </div>
-              </div>
+                <div className="feature-tooltip">
+                  {feature.description}
+        </div>
+          </div>
               <span className="expand-icon">{activeFeature === feature.id ? '▼' : '▶'}</span>
-            </div>
-            
+        </div>
+
             {activeFeature === feature.id && (
               <div 
                 className="feature-content" 
@@ -460,7 +513,7 @@ Note: You need signatures from the minimum required number of guardians to compl
                         className={field.readOnly ? 'generated-field' : ''}
                       />
                     ))}
-                  </div>
+          </div>
                   <div className="button-row">
                     {feature.buttons.map((button, index) => (
                       <button
@@ -472,11 +525,11 @@ Note: You need signatures from the minimum required number of guardians to compl
                         className="feature-button"
                       >
                         {button.text}
-                      </button>
+          </button>
                     ))}
-                  </div>
-                </div>
-              </div>
+        </div>
+          </div>
+        </div>
             )}
           </div>
         ))}
