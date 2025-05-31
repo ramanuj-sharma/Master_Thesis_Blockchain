@@ -388,4 +388,64 @@ contract EnhancedAccount is IAccount, Ownable {
 
     // Fallback function to receive ETH
     receive() external payable {}
+
+    // --- Combined Batch MFA with Transient Storage ---
+    /**
+     * @notice Executes multiple operations in a single transaction with MFA and transient storage.
+     * @param dests List of destination addresses.
+     * @param values List of ETH amounts to send.
+     * @param data List of calldata for each destination.
+     * @param otp A one-time password for additional security.
+     * @param secondarySignature Signature from the secondary key for the OTP.
+     */
+    function executeBatchWithMFAAndTransient(
+        address[] calldata dests,
+        uint256[] calldata values,
+        bytes[] calldata data,
+        bytes32 otp,
+        bytes memory secondarySignature
+    ) external onlyOwner {
+        // Prevent OTP reuse
+        require(!usedOtps[otp], "EnhancedAccount: OTP already used");
+        usedOtps[otp] = true;
+
+        // Verify the OTP with the secondary key's signature
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(abi.encodePacked(otp));
+        address recoveredKey = ECDSA.recover(ethSignedMessageHash, secondarySignature);
+        require(recoveredKey == secondaryKey, "EnhancedAccount: Invalid secondary signature");
+
+        require(
+            dests.length == values.length && dests.length == data.length,
+            "EnhancedAccount: Length mismatch"
+        );
+
+        // Calculate total value to send and store in transient storage
+        uint256 totalValue = 0;
+        for (uint256 i = 0; i < values.length; i++) {
+            totalValue += values[i];
+        }
+        
+        // Store totalValue in transient storage using TSTORE (EIP-1153 opcode)
+        assembly {
+            tstore(0, totalValue) // Store total value in transient storage
+        }
+
+        // Retrieve totalValue from transient storage using TLOAD (EIP-1153 opcode)
+        uint256 storedTotalValue;
+        assembly {
+            storedTotalValue := tload(0) // Retrieve total value from transient storage
+        }
+
+        require(address(this).balance >= storedTotalValue, "EnhancedAccount: Insufficient balance");
+
+        // Execute batch operations
+        for (uint256 i = 0; i < dests.length; i++) {
+            (bool success, ) = dests[i].call{value: values[i]}(data[i]);
+            emit BatchOperationResult(i, dests[i], success);
+            require(success, "EnhancedAccount: Batch operation failed");
+        }
+
+        emit BatchApproved(msg.sender, abi.encode(dests, values, data));
+        emit OTPUsed(otp);
+    }
 }

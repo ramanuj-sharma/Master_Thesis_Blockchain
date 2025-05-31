@@ -9,11 +9,25 @@ export default function FeaturesPage() {
   const [formData, setFormData] = useState({});
   const [network, setNetwork] = useState(null);
   const [activeTab, setActiveTab] = useState("all"); // For filtering features
+  const [activeFeature, setActiveFeature] = useState(null);
   const navigate = useNavigate();
 
   const contractAddress = "0x20a7cFfdE509256e63FC51E40e5dB29401D74DA2";
   const contractABI = [
-    {"type":"constructor","inputs":[{"name":"initialOwner","type":"address","internalType":"address"},{"name":"entryPoint","type":"address","internalType":"contract IEntryPoint"}],"stateMutability":"nonpayable"},{"type":"function","name":"addGuardian","inputs":[{"name":"guardian","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"addToBlacklist","inputs":[{"name":"addr","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"addToWhitelist","inputs":[{"name":"addr","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"approveERC20","inputs":[{"name":"token","type":"address","internalType":"address"},{"name":"spender","type":"address","internalType":"address"},{"name":"amount","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"blacklist","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"dailyLimit","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"dailySpent","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"executeBatch","inputs":[{"name":"dests","type":"address[]","internalType":"address[]"},{"name":"values","type":"uint256[]","internalType":"uint256[]"},{"name":"data","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeBatchWithTransient","inputs":[{"name":"dests","type":"address[]","internalType":"address[]"},{"name":"values","type":"uint256[]","internalType":"uint256[]"},{"name":"data","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeWithLimitTransient","inputs":[{"name":"dest","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"},{"name":"data","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeWithMFA","inputs":[{"name":"dest","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"},{"name":"data","type":"bytes","internalType":"bytes"},{"name":"otp","type":"bytes32","internalType":"bytes32"},{"name":"secondarySignature","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"getEntryPoint","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"guardians","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"isGuardian","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"lastSpendReset","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"owner","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"recoveryThreshold","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"removeGuardian","inputs":[{"name":"guardian","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"renounceOwnership","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"secondaryKey","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"setDailyLimit","inputs":[{"name":"limit","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"setSecondaryKey","inputs":[{"name":"newKey","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"transferOwnership","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"triggerRecovery","inputs":[{"name":"newOwner","type":"address","internalType":"address"},{"name":"guardianSignatures","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"usedOtps","inputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"validateUserOp","inputs":[{"name":"userOp","type":"tuple","internalType":"struct PackedUserOperation","components":[{"name":"sender","type":"address","internalType":"address"},{"name":"nonce","type":"uint256","internalType":"uint256"},{"name":"initCode","type":"bytes","internalType":"bytes"},{"name":"callData","type":"bytes","internalType":"bytes"},{"name":"accountGasLimits","type":"bytes32","internalType":"bytes32"},{"name":"preVerificationGas","type":"uint256","internalType":"uint256"},{"name":"gasFees","type":"bytes32","internalType":"bytes32"},{"name":"paymasterAndData","type":"bytes","internalType":"bytes"},{"name":"signature","type":"bytes","internalType":"bytes"}]},{"name":"userOpHash","type":"bytes32","internalType":"bytes32"},{"name":"missingAccountFunds","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"validationData","type":"uint256","internalType":"uint256"}],"stateMutability":"nonpayable"},{"type":"function","name":"whitelist","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"event","name":"AddressBlacklisted","inputs":[{"name":"addr","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"AddressWhitelisted","inputs":[{"name":"addr","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"BatchApproved","inputs":[{"name":"operator","type":"address","indexed":true,"internalType":"address"},{"name":"data","type":"bytes","indexed":false,"internalType":"bytes"}],"anonymous":false},{"type":"event","name":"BatchOperationResult","inputs":[{"name":"index","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"dest","type":"address","indexed":false,"internalType":"address"},{"name":"success","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"event","name":"DailyLimitSet","inputs":[{"name":"newLimit","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"GuardianAdded","inputs":[{"name":"guardian","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"GuardianRemoved","inputs":[{"name":"guardian","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"OTPUsed","inputs":[{"name":"otp","type":"bytes32","indexed":true,"internalType":"bytes32"}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"RecoveryTriggered","inputs":[{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"SecondaryKeySet","inputs":[{"name":"newKey","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"TransactionExecuted","inputs":[{"name":"dest","type":"address","indexed":true,"internalType":"address"},{"name":"value","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"success","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"error","name":"ECDSAInvalidSignature","inputs":[]},{"type":"error","name":"ECDSAInvalidSignatureLength","inputs":[{"name":"length","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ECDSAInvalidSignatureS","inputs":[{"name":"s","type":"bytes32","internalType":"bytes32"}]},{"type":"error","name":"OwnableInvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"OwnableUnauthorizedAccount","inputs":[{"name":"account","type":"address","internalType":"address"}]}
+    {"type":"constructor","inputs":[{"name":"initialOwner","type":"address","internalType":"address"},{"name":"entryPoint","type":"address","internalType":"contract IEntryPoint"}],"stateMutability":"nonpayable"},{"type":"function","name":"addGuardian","inputs":[{"name":"guardian","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"addToBlacklist","inputs":[{"name":"addr","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"addToWhitelist","inputs":[{"name":"addr","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"approveERC20","inputs":[{"name":"token","type":"address","internalType":"address"},{"name":"spender","type":"address","internalType":"address"},{"name":"amount","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"blacklist","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"dailyLimit","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"dailySpent","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"executeBatch","inputs":[{"name":"dests","type":"address[]","internalType":"address[]"},{"name":"values","type":"uint256[]","internalType":"uint256[]"},{"name":"data","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeBatchWithTransient","inputs":[{"name":"dests","type":"address[]","internalType":"address[]"},{"name":"values","type":"uint256[]","internalType":"uint256[]"},{"name":"data","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeWithLimitTransient","inputs":[{"name":"dest","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"},{"name":"data","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"executeWithMFA","inputs":[{"name":"dest","type":"address","internalType":"address"},{"name":"value","type":"uint256","internalType":"uint256"},{"name":"data","type":"bytes","internalType":"bytes"},{"name":"otp","type":"bytes32","internalType":"bytes32"},{"name":"secondarySignature","type":"bytes","internalType":"bytes"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"getEntryPoint","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"guardians","inputs":[{"name":"","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"isGuardian","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"lastSpendReset","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"owner","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"recoveryThreshold","inputs":[],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"removeGuardian","inputs":[{"name":"guardian","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"renounceOwnership","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"secondaryKey","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"setDailyLimit","inputs":[{"name":"limit","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"setSecondaryKey","inputs":[{"name":"newKey","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"transferOwnership","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"triggerRecovery","inputs":[{"name":"newOwner","type":"address","internalType":"address"},{"name":"guardianSignatures","type":"bytes[]","internalType":"bytes[]"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"usedOtps","inputs":[{"name":"","type":"bytes32","internalType":"bytes32"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"validateUserOp","inputs":[{"name":"userOp","type":"tuple","internalType":"struct PackedUserOperation","components":[{"name":"sender","type":"address","internalType":"address"},{"name":"nonce","type":"uint256","internalType":"uint256"},{"name":"initCode","type":"bytes","internalType":"bytes"},{"name":"callData","type":"bytes","internalType":"bytes"},{"name":"accountGasLimits","type":"bytes32","internalType":"bytes32"},{"name":"preVerificationGas","type":"uint256","internalType":"uint256"},{"name":"gasFees","type":"bytes32","internalType":"bytes32"},{"name":"paymasterAndData","type":"bytes","internalType":"bytes"},{"name":"signature","type":"bytes","internalType":"bytes"}]},{"name":"userOpHash","type":"bytes32","internalType":"bytes32"},{"name":"missingAccountFunds","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"validationData","type":"uint256","internalType":"uint256"}],"stateMutability":"nonpayable"},{"type":"function","name":"whitelist","inputs":[{"name":"","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"event","name":"AddressBlacklisted","inputs":[{"name":"addr","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"AddressWhitelisted","inputs":[{"name":"addr","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"BatchApproved","inputs":[{"name":"operator","type":"address","indexed":true,"internalType":"address"},{"name":"data","type":"bytes","indexed":false,"internalType":"bytes"}],"anonymous":false},{"type":"event","name":"BatchOperationResult","inputs":[{"name":"index","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"dest","type":"address","indexed":false,"internalType":"address"},{"name":"success","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"event","name":"DailyLimitSet","inputs":[{"name":"newLimit","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"GuardianAdded","inputs":[{"name":"guardian","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"GuardianRemoved","inputs":[{"name":"guardian","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"OTPUsed","inputs":[{"name":"otp","type":"bytes32","indexed":true,"internalType":"bytes32"}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"RecoveryTriggered","inputs":[{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"SecondaryKeySet","inputs":[{"name":"newKey","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"TransactionExecuted","inputs":[{"name":"dest","type":"address","indexed":true,"internalType":"address"},{"name":"value","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"success","type":"bool","indexed":false,"internalType":"bool"}],"anonymous":false},{"type":"error","name":"ECDSAInvalidSignature","inputs":[]},{"type":"error","name":"ECDSAInvalidSignatureLength","inputs":[{"name":"length","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ECDSAInvalidSignatureS","inputs":[{"name":"s","type":"bytes32","internalType":"bytes32"}]},{"type":"error","name":"OwnableInvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"OwnableUnauthorizedAccount","inputs":[{"name":"account","type":"address","internalType":"address"}]},
+    {
+      "type": "function",
+      "name": "executeBatchWithMFAAndTransient",
+      "inputs": [
+        { "name": "dests", "type": "address[]", "internalType": "address[]" },
+        { "name": "values", "type": "uint256[]", "internalType": "uint256[]" },
+        { "name": "data", "type": "bytes[]", "internalType": "bytes[]" },
+        { "name": "otp", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "secondarySignature", "type": "bytes", "internalType": "bytes" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    }
   ];  
 
   useEffect(() => {
@@ -30,6 +44,11 @@ export default function FeaturesPage() {
       navigate("/");
     }
   }, [navigate]);
+
+  // Reset active feature when tab changes
+  useEffect(() => {
+    setActiveFeature(null);
+  }, [activeTab]);
 
   async function initializeContract() {
     if (window.ethereum) {
@@ -186,145 +205,281 @@ export default function FeaturesPage() {
       </div>
 
       <div className="features-grid">
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Set Secondary Key")}</span>
-            Set Secondary Key
-          </h2>
-          <div className="feature-description">
-            Add an extra security key for multi-factor authentication
-          </div>
-          <input
-            type="text"
-            name="newSecondaryKey"
-            placeholder="New secondary key address"
-            onChange={handleChange}
-          />
-          <button onClick={() => executeWithTimer('setSecondaryKey', [formData.newSecondaryKey])}>
-            Set Secondary Key
-          </button>
-        </div>
+        {[
+          {
+            id: "batchMfa",
+            title: "Batch MFA Transactions",
+            icon: "🔐",
+            description: "Execute multiple transactions with MFA and transient storage",
+            helpText: `This feature allows you to execute multiple transactions in a single batch with enhanced security using Multi-Factor Authentication (MFA) and transient storage.
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Multi-Factor Authentication")}</span>
-            Multi-Factor Authentication
-          </h2>
-          <div className="feature-description">
-            Execute transactions with additional security verification
-          </div>
-          <input type="text" name="dest" placeholder="Destination address" onChange={handleChange} />
-          <input type="text" name="value" placeholder="ETH value" onChange={handleChange} />
-          <input type="text" name="data" placeholder="Calldata (optional)" onChange={handleChange} />
-          <input type="text" name="otp" placeholder="OTP" value={formData.otp || ''} readOnly className="generated-field" />
-          <input
-            type="text"
-            name="secondarySignature"
-            placeholder="Secondary Key Signature"
-            value={formData.secondarySignature || ''}
-            readOnly
-            className="generated-field"
-          />
-          <div className="button-row">
-            <button onClick={generateOtpAndSign}>Generate OTP & Sign</button>
-            <button onClick={() => executeWithTimer('executeWithMFA', [formData.dest, ethers.utils.parseEther(formData.value || "0"), formData.data || "0x", formData.otp, formData.secondarySignature])}>
-              Execute with MFA
-            </button>
-          </div>
-        </div>
+How to use:
+1. Enter comma-separated lists of destination addresses, ETH values, and calldata
+2. Click "Generate OTP & Sign" to create a one-time password and get it signed
+3. Click "Execute Batch MFA" to process all transactions securely
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Batch Execution (Transient)")}</span>
-            Batch Execution (Transient)
-          </h2>
-          <div className="feature-description">
-            Execute multiple transactions in a single operation with transient security
-          </div>
-          <input type="text" name="dests" placeholder="Destination addresses (comma-separated)" onChange={handleChange} />
-          <input type="text" name="values" placeholder="ETH values (comma-separated)" onChange={handleChange} />
-          <input type="text" name="batchData" placeholder="Calldata (comma-separated)" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('executeBatchWithTransient', [
-            formData.dests ? formData.dests.split(",") : [],
-            formData.values ? formData.values.split(",").map((v) => ethers.utils.parseEther(v)) : [],
-            formData.batchData ? formData.batchData.split(",") : []
-          ])}>
-            Execute Transient Batch
-          </button>
-        </div>
+Example:
+Addresses: 0x123...,0x456...
+Values: 0.1,0.2
+Data: 0x,0x`,
+            category: "transactions",
+            fields: [
+              { name: "batchMfaDests", placeholder: "Destination addresses (comma-separated)" },
+              { name: "batchMfaValues", placeholder: "ETH values (comma-separated)" },
+              { name: "batchMfaData", placeholder: "Calldata (comma-separated)" },
+              { name: "batchMfaOtp", placeholder: "OTP", readOnly: true },
+              { name: "batchMfaSecondarySignature", placeholder: "Secondary Key Signature", readOnly: true }
+            ],
+            buttons: [
+              {
+                text: "Generate OTP & Sign",
+                onClick: async () => {
+                  try {
+                    const otp = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+                    setFormData((prev) => ({ ...prev, batchMfaOtp: otp }));
+                    const secondaryPrivateKey = "c2a59fbc8154a80b0b84f61458d1a43608a3729442609a9bf30bcd8137f7f8c2";
+                    if (!secondaryPrivateKey) {
+                      throw new Error("Secondary private key is not set");
+                    }
+                    const signer = new ethers.Wallet(secondaryPrivateKey);
+                    const ethSignedMessage = ethers.utils.hashMessage(ethers.utils.arrayify(otp));
+                    const secondarySignature = await signer.signMessage(ethers.utils.arrayify(ethSignedMessage));
+                    setFormData((prev) => ({ ...prev, batchMfaSecondarySignature: secondarySignature }));
+                    showToast("OTP generated and signed successfully!");
+                  } catch (error) {
+                    showToast("OTP generation or signing failed: " + (error.message || error), "error");
+                  }
+                }
+              },
+              {
+                text: "Execute Batch MFA",
+                onClick: () => executeWithTimer('executeBatchWithMFAAndTransient', [
+                  formData.batchMfaDests ? formData.batchMfaDests.split(",") : [],
+                  formData.batchMfaValues ? formData.batchMfaValues.split(",").map((v) => ethers.utils.parseEther(v)) : [],
+                  formData.batchMfaData ? formData.batchMfaData.split(",") : [],
+                  formData.batchMfaOtp,
+                  formData.batchMfaSecondarySignature
+                ])
+              }
+            ]
+          },
+          {
+            id: "batchTransient",
+            title: "Batch Transactions (Transient)",
+            icon: "⚡",
+            description: "Execute multiple transactions with optimized storage",
+            helpText: `Execute multiple transactions in a batch using EIP-1153 transient storage for gas optimization.
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Batch Execution")}</span>
-            Batch Execution
-          </h2>
-          <div className="feature-description">
-            Execute multiple transactions in a single operation
-          </div>
-          <input type="text" name="dests" placeholder="Destination addresses (comma-separated)" onChange={handleChange} />
-          <input type="text" name="values" placeholder="ETH values (comma-separated)" onChange={handleChange} />
-          <input type="text" name="batchData" placeholder="Calldata (comma-separated)" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('executeBatch', [
-            formData.dests ? formData.dests.split(",") : [],
-            formData.values ? formData.values.split(",").map((v) => ethers.utils.parseEther(v)) : [],
-            formData.batchData ? formData.batchData.split(",") : []
-          ])}>
-            Execute Batch
-          </button>
-        </div>
+How to use:
+1. Enter comma-separated lists of destination addresses and ETH values
+2. Optionally add calldata for each transaction
+3. Click "Execute Batch" to process all transactions
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Spending Limit (Transient)")}</span>
-            Spending Limit (Transient)
-          </h2>
-          <div className="feature-description">
-            Set daily transaction limits with transient security
-          </div>
-          <input type="text" name="limit" placeholder="Daily limit (ETH)" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('setDailyLimit', [ethers.utils.parseEther(formData.limit || "0")])}>
-            Set Daily Limit
-          </button>
-          <input type="text" name="dest" placeholder="Destination address" onChange={handleChange} />
-          <input type="text" name="value" placeholder="ETH value" onChange={handleChange} />
-          <input type="text" name="data" placeholder="Calldata (optional)" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('executeWithLimitTransient', [formData.dest, ethers.utils.parseEther(formData.value || "0"), formData.data || "0x"])}>
-            Execute with Transient Limit
-          </button>
-        </div>
+Example:
+Addresses: 0x123...,0x456...
+Values: 0.1,0.2
+Data: 0x,0x`,
+            category: "transactions",
+            fields: [
+              { name: "batchTransientDests", placeholder: "Destination addresses (comma-separated)" },
+              { name: "batchTransientValues", placeholder: "ETH values (comma-separated)" },
+              { name: "batchTransientData", placeholder: "Calldata (comma-separated)" }
+            ],
+            buttons: [
+              {
+                text: "Execute Batch",
+                onClick: () => executeWithTimer('executeBatchWithTransient', [
+                  formData.batchTransientDests ? formData.batchTransientDests.split(",") : [],
+                  formData.batchTransientValues ? formData.batchTransientValues.split(",").map((v) => ethers.utils.parseEther(v)) : [],
+                  formData.batchTransientData ? formData.batchTransientData.split(",") : []
+                ])
+              }
+            ]
+          },
+          {
+            id: "batch",
+            title: "Batch Transactions",
+            icon: "📦",
+            description: "Execute multiple transactions in one go",
+            helpText: `Send multiple transactions in a single operation to save gas and time.
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Whitelist & Blacklist")}</span>
-            Whitelist & Blacklist
-          </h2>
-          <div className="feature-description">
-            Manage allowed and blocked addresses for transactions
-          </div>
-          <input type="text" name="whitelistAddress" placeholder="Address to whitelist" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('addToWhitelist', [formData.whitelistAddress])}>
-            Add to Whitelist
-          </button>
-          <input type="text" name="blacklistAddress" placeholder="Address to blacklist" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('addToBlacklist', [formData.blacklistAddress])}>
-            Add to Blacklist
-          </button>
-        </div>
+How to use:
+1. Enter comma-separated lists of destination addresses and ETH values
+2. Optionally add calldata for each transaction
+3. Click "Execute Batch" to process all transactions
 
-        <div className="feature-card">
-          <h2>
-            <span className="feature-icon">{formatFeatureIcon("Social Recovery")}</span>
-            Social Recovery
-          </h2>
-          <div className="feature-description">
-            Recover your account with help from designated guardians
+Example:
+Addresses: 0x123...,0x456...
+Values: 0.1,0.2
+Data: 0x,0x`,
+            category: "transactions",
+            fields: [
+              { name: "dests", placeholder: "Destination addresses (comma-separated)" },
+              { name: "values", placeholder: "ETH values (comma-separated)" },
+              { name: "batchData", placeholder: "Calldata (comma-separated)" }
+            ],
+            buttons: [
+              {
+                text: "Execute Batch",
+                onClick: () => executeWithTimer('executeBatch', [
+                  formData.dests ? formData.dests.split(",") : [],
+                  formData.values ? formData.values.split(",").map((v) => ethers.utils.parseEther(v)) : [],
+                  formData.batchData ? formData.batchData.split(",") : []
+                ])
+              }
+            ]
+          },
+          {
+            id: "spendingLimit",
+            title: "Spending Limit",
+            icon: "💰",
+            description: "Set and manage daily spending limits",
+            helpText: `Protect your wallet by setting a maximum daily spending limit.
+
+How to use:
+1. Enter the daily limit in ETH (e.g., "1.5" for 1.5 ETH)
+2. Click "Set Daily Limit" to activate
+
+Note: The limit resets every 24 hours. Whitelisted addresses can bypass this limit.`,
+            category: "security",
+            fields: [
+              { name: "limit", placeholder: "Daily limit (ETH)" }
+            ],
+            buttons: [
+              {
+                text: "Set Daily Limit",
+                onClick: () => executeWithTimer('setDailyLimit', [
+                  ethers.utils.parseEther(formData.limit || "0")
+                ])
+              }
+            ]
+          },
+          {
+            id: "whitelist",
+            title: "Whitelist & Blacklist",
+            icon: "📝",
+            description: "Manage allowed and blocked addresses",
+            helpText: `Control which addresses can interact with your wallet.
+
+How to use:
+- Whitelist: Add trusted addresses that can bypass spending limits
+- Blacklist: Block suspicious addresses from interacting with your wallet
+
+Enter one address at a time and click the corresponding button.`,
+            category: "security",
+            fields: [
+              { name: "whitelistAddress", placeholder: "Address to whitelist" },
+              { name: "blacklistAddress", placeholder: "Address to blacklist" }
+            ],
+            buttons: [
+              {
+                text: "Add to Whitelist",
+                onClick: () => executeWithTimer('addToWhitelist', [formData.whitelistAddress])
+              },
+              {
+                text: "Add to Blacklist",
+                onClick: () => executeWithTimer('addToBlacklist', [formData.blacklistAddress])
+              }
+            ]
+          },
+          {
+            id: "recovery",
+            title: "Social Recovery",
+            icon: "🔄",
+            description: "Recover your account with help from guardians",
+            helpText: `Recover access to your wallet with help from designated guardians if you lose access.
+
+How to use:
+1. Enter the new owner address
+2. Collect signatures from your guardians (comma-separated)
+3. Click "Trigger Recovery" to transfer ownership
+
+Note: You need signatures from the minimum required number of guardians to complete recovery.`,
+            category: "security",
+            fields: [
+              { name: "newOwner", placeholder: "New owner address" },
+              { name: "guardianSignatures", placeholder: "Guardian signatures (comma-separated)" }
+            ],
+            buttons: [
+              {
+                text: "Trigger Recovery",
+                onClick: () => executeWithTimer('triggerRecovery', [
+                  formData.newOwner,
+                  formData.guardianSignatures ? formData.guardianSignatures.split(",") : []
+                ])
+              }
+            ]
+          }
+        ]
+        .filter(feature => activeTab === "all" || feature.category === activeTab)
+        .map((feature) => (
+          <div
+            key={feature.id}
+            className={`feature-card ${activeFeature === feature.id ? 'expanded' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveFeature(currentActive => 
+                currentActive === feature.id ? null : feature.id
+              );
+            }}
+          >
+            <div className="feature-header">
+              <div className="feature-header-content">
+                <span className="feature-icon">{feature.icon}</span>
+                <div className="feature-title-group">
+                  <h2>{feature.title}</h2>
+                  <p className="feature-description">{feature.description}</p>
+                </div>
+              </div>
+              <span className="expand-icon">{activeFeature === feature.id ? '▼' : '▶'}</span>
+            </div>
+            
+            {activeFeature === feature.id && (
+              <div 
+                className="feature-content" 
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="feature-content-inner">
+                  {feature.helpText && (
+                    <div className="help-text">
+                      {feature.helpText.split('\n').map((line, i) => (
+                        line.trim() && <p key={i}>{line}</p>
+                      ))}
+                    </div>
+                  )}
+                  <div className="feature-inputs">
+                    {feature.fields.map((field) => (
+                      <input
+                        key={field.name}
+                        type="text"
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={formData[field.name] || ''}
+                        onChange={handleChange}
+                        readOnly={field.readOnly}
+                        className={field.readOnly ? 'generated-field' : ''}
+                      />
+                    ))}
+                  </div>
+                  <div className="button-row">
+                    {feature.buttons.map((button, index) => (
+                      <button
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          button.onClick();
+                        }}
+                        className="feature-button"
+                      >
+                        {button.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <input type="text" name="newOwner" placeholder="New owner address" onChange={handleChange} />
-          <input type="text" name="guardianSignatures" placeholder="Guardian signatures (comma-separated)" onChange={handleChange} />
-          <button onClick={() => executeWithTimer('triggerRecovery', [formData.newOwner, formData.guardianSignatures ? formData.guardianSignatures.split(",") : []])}>
-            Trigger Recovery
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );
